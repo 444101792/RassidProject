@@ -1,13 +1,13 @@
 from rest_framework import serializers
-from .models import Ticket, TicketLog
+from .models import Ticket, TicketComment
 
-class TicketLogSerializer(serializers.ModelSerializer):
+class TicketCommentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = TicketLog
+        model = TicketComment
         fields = "__all__"
 
 class TicketSerializer(serializers.ModelSerializer):
-    logs = TicketLogSerializer(many=True, read_only=True)
+    comments = TicketCommentSerializer(many=True, read_only=True, source="ticketcomment_set")
 
     class Meta:
         model = Ticket
