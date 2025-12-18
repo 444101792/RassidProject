@@ -133,15 +133,15 @@
 
 <script>
     function populateGateForm(flightNum, gate, terminal) {
-        // 1. Scroll to form
+
         const formSection = document.querySelector('.grid-2-col'); // Or specific ID
         formSection.scrollIntoView({ behavior: 'smooth' });
 
-        // 2. Set Flight Number
+
         const select = document.getElementById('id_flight_number');
         select.value = flightNum;
 
-        // 3. Set Gate and Terminal
+
         document.getElementById('id_gate_code').value = gate;
         document.getElementById('id_terminal').value = terminal;
     }

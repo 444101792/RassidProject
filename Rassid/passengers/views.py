@@ -27,14 +27,12 @@ def tracking(request, flight_id=None):
         if status_filter and status_filter != 'all':
             flights = flights.filter(status__iexact=status_filter)
 
-        # Origin City Filter
+
         origin_city_filter = request.GET.get('origin_city')
         if origin_city_filter and origin_city_filter != 'all':
             flights = flights.filter(origin__city__iexact=origin_city_filter)
 
-        # distinct cities for dropdown
-        # efficient way: get list of cities from current set or all valid flights
-        # showing all cities that have at least one flight in the system is better UX
+
         available_cities = Flight.objects.values_list('origin__city', flat=True).distinct().order_by('origin__city')
             
         context = {

@@ -5,8 +5,8 @@ class Command(BaseCommand):
     help = 'Seeds database with airports from AviationStack API'
 
     def handle(self, *args, **kwargs):
-        # API returns 403 on Free Plan for airports endpoint.
-        # Fallback: Official GCC Airports List
+
+
         gcc_airports = [
             # Saudi Arabia
             {'name': 'King Khalid International', 'code': 'RUH', 'city': 'Riyadh', 'country': 'Saudi Arabia'},
