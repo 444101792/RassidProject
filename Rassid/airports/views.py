@@ -87,8 +87,9 @@ def dashboard(request):
     today = timezone.now().date()
     now = timezone.now()
 
+    employees = User.objects.filter(role='operator', airport_id=request.user.airport_id)
+
     total_flights = Flight.objects.filter(origin=my_airport).count()
-    
     today_flights = Flight.objects.filter(
         origin=my_airport, 
         scheduledDeparture__date=today
@@ -107,6 +108,7 @@ def dashboard(request):
         'today_flights': today_flights,
         'total_tickets': total_tickets,
         'upcoming_flights': upcoming_flights,
+        'employees': employees, 
     }
     
     return render(request, "airports/dashboard.html", context)
@@ -122,19 +124,33 @@ def employees_list(request):
 def add_employee(request):
     if request.user.role != 'airport_admin':
         return redirect('public_home')
+
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+            return render(request, "airports/add_employee.html")
+
         try:
             User.objects.create_user(
                 email=email,
                 password=password,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_number,
                 role='operator',
                 airport_id=request.user.airport_id
             )
+            messages.success(request, "Employee added successfully.")
             return redirect('airport_admin_employees')
-        except:
-            pass
+        except Exception as e:
+            messages.error(request, f"Error creating user: {e}")
+
     return render(request, "airports/add_employee.html")
 
 @login_required
@@ -165,6 +181,7 @@ def edit_employee(request, employee_id):
         'airport': my_airport
     }
     return render(request, 'airports/edit_employee.html', context)
+
 @login_required
 def delete_employee(request, employee_id):
     if request.user.role != 'airport_admin' or not request.user.airport_id:

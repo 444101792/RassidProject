@@ -11,9 +11,29 @@
         <form method="POST">
             {% csrf_token %}
             
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <label style="color: #ccc; margin-bottom: 10px;">First Name</label>
+                    <input type="text" name="first_name" class="form-control" required 
+                           style="background: #2b2e33; border: 1px solid #444; color: white; padding: 12px;">
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <label style="color: #ccc; margin-bottom: 10px;">Last Name</label>
+                    <input type="text" name="last_name" class="form-control" required 
+                           style="background: #2b2e33; border: 1px solid #444; color: white; padding: 12px;">
+                </div>
+            </div>
+
             <div class="mb-4">
                 <label style="color: #ccc; margin-bottom: 10px;">Email Address</label>
                 <input type="email" name="email" class="form-control" required 
+                       style="background: #2b2e33; border: 1px solid #444; color: white; padding: 12px;">
+            </div>
+
+            <div class="mb-4">
+                <label style="color: #ccc; margin-bottom: 10px;">Phone Number</label>
+                <input type="text" name="phone_number" class="form-control" 
                        style="background: #2b2e33; border: 1px solid #444; color: white; padding: 12px;">
             </div>
 
