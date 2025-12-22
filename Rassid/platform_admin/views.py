@@ -13,6 +13,8 @@ import string
 from airports.models import Airport, AirportSubscription, SubscriptionRequest
 from flights.models import Flight
 from tickets.models import Ticket
+from passengers.models import PassengerFlight
+from notifications.models import EmailLog
 
 User = get_user_model()
 
@@ -32,30 +34,43 @@ def admin_dashboard(request):
     if not is_super_admin(request.user):
         return redirect('public_home')
 
+    emails_sent_count = EmailLog.objects.filter(status='Sent').count()
+    emails_failed_count = EmailLog.objects.filter(status='Failed').count()
+
+    today = timezone.now().date()
+    passengers_today = PassengerFlight.objects.filter(
+        flight__scheduledDeparture__date=today
+    ).count()
+
+    total_ops = emails_sent_count + emails_failed_count
+    if total_ops > 0 and emails_failed_count > 0:
+        uptime_calc = ((total_ops - emails_failed_count) / total_ops) * 100
+        system_uptime = f"{uptime_calc:.1f}%"
+    else:
+        system_uptime = "100%"
+
     stats = {
         "airports_count": Airport.objects.count(),
         "active_subscriptions": AirportSubscription.objects.filter(status='active').count(),
         "employees_count": User.objects.filter(role='airport_staff').count(),
-        "passengers_today": 45231,
-        "sms_delivered": 44892,
-        "api_errors": 23,
-        "system_uptime": "99.8%"
+        "passengers_today": passengers_today,
+        "emails_delivered": emails_sent_count,
+        "api_errors": emails_failed_count,
+        "system_uptime": system_uptime
     }
 
     latest_airports = Airport.objects.all().order_by('-id')[:5]
     admins = User.objects.filter(role='airport_admin')[:5]
     
-    tickets = [
-        {'id': 'ST001', 'airport': 'King Fahd Int', 'title': 'API timeout issues', 'priority': 'High', 'status': 'Open'},
-        {'id': 'ST002', 'airport': 'Heathrow', 'title': 'SMS delivery delays', 'priority': 'Medium', 'status': 'Open'},
-        {'id': 'ST003', 'airport': 'JFK Int', 'title': 'Dashboard loading slow', 'priority': 'Low', 'status': 'Open'},
-    ]
+
+    recent_tickets = Ticket.objects.select_related('airport').all().order_by('-createdAt')[:5]
+ 
 
     context = {
         "stats": stats,
         "latest_airports": latest_airports,
         "admins": admins,
-        "tickets": tickets
+        "tickets": recent_tickets
     }
     return render(request, "platform_admin/dashboard.html", context)
 
@@ -145,9 +160,24 @@ Please login and change your password immediately.
 Regards,
 RASSID Team
 """
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [sub_req.admin_email], fail_silently=False)
-
-        messages.success(request, f"Airport {airport.name} approved and credentials sent!")
+        try:
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [sub_req.admin_email], fail_silently=False)
+            
+            EmailLog.objects.create(
+                recipient=sub_req.admin_email,
+                subject="Account Approval",
+                status="Sent"
+            )
+            messages.success(request, f"Airport {airport.name} approved and credentials sent!")
+            
+        except Exception as email_error:
+            EmailLog.objects.create(
+                recipient=sub_req.admin_email,
+                subject="Account Approval",
+                status="Failed",
+                error_message=str(email_error)
+            )
+            messages.warning(request, f"Airport approved, BUT email failed to send. Error: {email_error}")
         
     except Exception as e:
         transaction.set_rollback(True)
@@ -168,13 +198,23 @@ def reject_request(request, request_id):
     try:
         send_mail(
             "Update on your RASSID Subscription Request",
-            f"Dear Applicant,\n\nUnfortunately, we could not approve your request for {sub_req.airport_name} at this time.\nPlease contact support for more details.",
+            f"Dear Applicant,\n\nUnfortunately, we could not approve your request for {sub_req.airport_name}.\nContact support for details.",
             settings.DEFAULT_FROM_EMAIL,
             [sub_req.admin_email],
             fail_silently=False
         )
-    except:
-        pass
+        EmailLog.objects.create(
+            recipient=sub_req.admin_email,
+            subject="Request Rejected",
+            status="Sent"
+        )
+    except Exception as e:
+        EmailLog.objects.create(
+            recipient=sub_req.admin_email,
+            subject="Request Rejected",
+            status="Failed",
+            error_message=str(e)
+        )
 
     messages.info(request, "Request has been rejected.")
     return redirect('admin_requests_list')
