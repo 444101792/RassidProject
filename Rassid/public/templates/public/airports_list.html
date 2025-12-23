@@ -16,58 +16,25 @@
 
 <div class="container" style="margin-bottom: 80px; position: relative; z-index: 2; margin-top: -50px;">
     <div class="airports-grid">
-
+        {% for airport in airports %}
         <div class="airport-card">
-            <div class="ac-image"
-                style="background-image: url('https://images.unsplash.com/photo-1575988585250-8b17b2b7336f?q=80&w=1000&auto=format&fit=crop');">
+            <div class="ac-image" style="background-image: url('https://images.unsplash.com/photo-1530521954074-e64f6810b32d?q=80&w=1000&auto=format&fit=crop');">
                 <div class="ac-badge status-active">Active Partner</div>
             </div>
             <div class="ac-content">
                 <div class="ac-header">
-                    <h2>Riyadh</h2>
-                    <span class="code">RUH</span>
+                    <h2>{{ airport.city }}</h2>
+                    <span class="code">{{ airport.code }}</span>
                 </div>
-                <p class="ac-name">King Khalid International Airport</p>
+                <p class="ac-name">{{ airport.name }}</p>
                 <div class="ac-meta simple-meta">
-                    <span><span class="material-symbols-outlined">flight_takeoff</span> Daily Flights: 120+</span>
+                    <span><span class="material-symbols-outlined">flight_takeoff</span> Country: {{ airport.country }}</span>
                 </div>
             </div>
         </div>
-
-        <div class="airport-card">
-            <div class="ac-image"
-                style="background-image: url('https://images.unsplash.com/photo-1569629743817-70d8db6c323b?q=80&w=1000&auto=format&fit=crop');">
-                <div class="ac-badge status-active">Active Partner</div>
-            </div>
-            <div class="ac-content">
-                <div class="ac-header">
-                    <h2>Jeddah</h2>
-                    <span class="code">JED</span>
-                </div>
-                <p class="ac-name">King Abdulaziz International Airport</p>
-                <div class="ac-meta simple-meta">
-                    <span><span class="material-symbols-outlined">flight_takeoff</span> Daily Flights: 180+</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="airport-card">
-            <div class="ac-image"
-                style="background-image: url('https://images.unsplash.com/photo-1530521954074-e64f6810b32d?q=80&w=1000&auto=format&fit=crop');">
-                <div class="ac-badge status-new">New Partner</div>
-            </div>
-            <div class="ac-content">
-                <div class="ac-header">
-                    <h2>Dammam</h2>
-                    <span class="code">DMM</span>
-                </div>
-                <p class="ac-name">King Fahd International Airport</p>
-                <div class="ac-meta simple-meta">
-                    <span><span class="material-symbols-outlined">flight_takeoff</span> Daily Flights: 85+</span>
-                </div>
-            </div>
-        </div>
-
+        {% empty %}
+        <p style="color: #94a3b8; text-align: center; margin-top: 50px;">No partner airports found.</p>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

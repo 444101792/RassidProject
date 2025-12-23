@@ -11,7 +11,11 @@ def about(request):
     return render(request, "public/about.html")
 
 def airports_list(request):
-    airports = Airport.objects.all()
+    from airports.models import AirportSubscription
+    from django.utils import timezone
+    # Only airports with an active subscription (partner)
+    active_subs = AirportSubscription.objects.filter(status='active', expire_at__gt=timezone.now())
+    airports = Airport.objects.filter(id__in=active_subs.values_list('airport_id', flat=True))
     return render(request, "public/airports_list.html", {"airports": airports})
 
 def flights_list(request):
