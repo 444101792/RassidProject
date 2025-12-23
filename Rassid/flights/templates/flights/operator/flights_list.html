@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/flight_operator.css' %}">
+
 <div class="dashboard-container">
     <div class="dashboard-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -16,26 +18,22 @@
         </div>
     </div>
 
-    <!-- Search Bar -->
     <div style="margin-bottom: 20px;">
         <form method="GET" action="{% url 'operator_flights_list' %}"
             style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <!-- Search by Flight Number -->
             <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Flight No..."
                 style="flex: 1; min-width: 150px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;">
 
-            <!-- Filter by Destination -->
             <select name="destination"
                 style="min-width: 150px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: white;">
                 <option value="">All Destinations</option>
                 {% for dest in destinations %}
-                <option value="{{ dest.id }}" {% if selected_destination == dest.id %}selected{% endif %}>
+                <option value="{{ dest.id }}" {% if selected_destination==dest.id %}selected{% endif %}>
                     {{ dest.city }} ({{ dest.code }})
                 </option>
                 {% endfor %}
             </select>
 
-            <!-- Filter by Date -->
             <input type="date" name="date" value="{{ selected_date|default:'' }}"
                 style="min-width: 150px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;">
 
@@ -104,7 +102,6 @@
         </table>
     </div>
 
-    <!-- EMBEDDED TICKETING SYSTEM -->
     <div style="margin-top: 50px; border-top: 1px solid #e2e8f0; padding-top: 30px;">
         <div class="dashboard-header" style="margin-bottom: 20px;">
             <h1>Support Tickets</h1>
@@ -112,7 +109,6 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-            <!-- Create Ticket Form -->
             <div
                 style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <h3 style="margin-bottom: 20px; font-size: 1.25rem; font-weight: 600;">Create New Ticket</h3>
@@ -144,7 +140,6 @@
                 </form>
             </div>
 
-            <!-- Ticket List -->
             <div
                 style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 600px; overflow-y: auto;">
                 <h3 style="margin-bottom: 20px; font-size: 1.25rem; font-weight: 600;">My Recent Tickets</h3>
@@ -183,119 +178,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .dashboard-container {
-        max-width: 1200px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
-
-    .dashboard-header {
-        margin-bottom: 30px;
-    }
-
-    .dashboard-header h1 {
-        font-size: 2rem;
-        color: #0f172a;
-        margin-bottom: 10px;
-    }
-
-    .flights-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .flights-table th,
-    .flights-table td {
-        padding: 16px 24px;
-        text-align: left;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .flights-table th {
-        background: #f8fafc;
-        font-weight: 600;
-        color: #64748b;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .flight-number {
-        font-family: monospace;
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    .btn-action {
-        display: inline-block;
-        padding: 6px 16px;
-        background: #0f172a;
-        color: white;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 0.875rem;
-        transition: opacity 0.2s;
-        margin-right: 8px;
-    }
-
-    .btn-action.btn-secondary {
-        background: #e2e8f0;
-        color: #0f172a;
-    }
-
-    .btn-action:hover {
-        opacity: 0.9;
-    }
-
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .btn-primary {
-        background: #2563eb;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: background 0.2s;
-    }
-
-    .btn-primary:hover {
-        background: #1d4ed8;
-    }
-
-    .status-scheduled {
-        background: #e0f2fe;
-        color: #0284c7;
-    }
-
-    .status-boarding {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    .status-departed {
-        background: #dcfce7;
-        color: #16a34a;
-    }
-
-    .status-cancelled {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-</style>
 {% endblock %}

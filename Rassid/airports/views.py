@@ -112,7 +112,6 @@ def dashboard(request):
         'today_flights': today_flights,
         'total_tickets': total_tickets,
         'upcoming_flights': upcoming_flights,
-        'upcoming_flights': upcoming_flights,
         'employees': employees, 
         'tickets': tickets,
     }

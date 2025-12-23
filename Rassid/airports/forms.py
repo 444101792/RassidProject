@@ -2,6 +2,15 @@ from django import forms
 from .models import SubscriptionRequest
 
 class AirportSignupForm(forms.ModelForm):
+    def clean_admin_phone(self):
+        import re
+        phone = self.cleaned_data.get('admin_phone', '').strip()
+        # Accepts Saudi mobile numbers: +9665XXXXXXXX or 05XXXXXXXX
+        pattern = r'^(\+9665\d{8}|05\d{8})$'
+        if not re.match(pattern, phone):
+            raise forms.ValidationError('Enter a valid Saudi mobile number (e.g. +9665XXXXXXXX or 05XXXXXXXX)')
+        return phone
+
     class Meta:
         model = SubscriptionRequest
         fields = [
