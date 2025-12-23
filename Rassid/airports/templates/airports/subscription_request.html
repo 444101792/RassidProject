@@ -47,10 +47,16 @@
             <div class="form-grid">
                 <div>
                     <label class="form-label">Admin Email</label>
+                    {% if form.admin_email.errors %}
+                        <div style="color: #e74c3c; margin-bottom: 5px;">{{ form.admin_email.errors.0 }}</div>
+                    {% endif %}
                     {{ form.admin_email }}
                 </div>
                 <div>
                     <label class="form-label">Phone Number</label>
+                    {% if form.admin_phone.errors %}
+                        <div style="color: #e74c3c; margin-bottom: 5px;">{{ form.admin_phone.errors.0 }}</div>
+                    {% endif %}
                     {{ form.admin_phone }}
                 </div>
             </div>
@@ -63,13 +69,23 @@
                 {{ form.selected_plan }}
             </div>
 
+
+            <div style="color: #e67e22; margin-bottom: 10px; font-size: 0.95em;">
+                Note: If there is a validation error, you will need to re-select your files before submitting again.
+            </div>
             <div class="form-grid">
                 <div>
                     <label class="form-label">Operating License (PDF/Img)</label>
+                    {% if form.official_license.errors %}
+                        <div style="color: #e74c3c; margin-bottom: 5px;">{{ form.official_license.errors.0 }}</div>
+                    {% endif %}
                     {{ form.official_license }}
                 </div>
                 <div>
                     <label class="form-label">Commercial Record (Optional)</label>
+                    {% if form.commercial_record.errors %}
+                        <div style="color: #e74c3c; margin-bottom: 5px;">{{ form.commercial_record.errors.0 }}</div>
+                    {% endif %}
                     {{ form.commercial_record }}
                 </div>
             </div>
