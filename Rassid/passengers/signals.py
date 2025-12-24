@@ -14,10 +14,10 @@ def send_update_email_to_passengers(flight, title_en, desc_en, title_ar, desc_ar
         passenger = booking.passenger
         lang = passenger.preferredLanguage
         
-        token = passenger.trackingToken
+        token = booking.access_token
         # Hardcoding domain for now as we don't have request object in signal
         # Ideally use sites framework or settings.SITE_URL
-        tracking_url = f"http://127.0.0.1:8000/passengers/track/{token}/"
+        tracking_url = f"http://127.0.0.1:8000/passengers/track/booking/{token}/"
         
         if lang == 'ar':
             subject = f"تحديث الرحلة {flight.flightNumber}"
@@ -99,8 +99,8 @@ def booking_created(sender, instance, created, **kwargs):
         flight = instance.flight
         lang = passenger.preferredLanguage
         
-        token = passenger.trackingToken
-        tracking_link = f"http://127.0.0.1:8000/passengers/track/{token}/"
+        token = instance.access_token
+        tracking_link = f"http://127.0.0.1:8000/passengers/track/booking/{token}/"
         
         try:
             boarding_time = flight.scheduledDeparture.strftime('%H:%M')

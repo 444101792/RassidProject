@@ -53,8 +53,7 @@
             <div class="flight-number">Flight Number: {{ flight.flightNumber }}</div>
             <div class="flight-header">
                 <div class="flight-route">
-                    {{ flight.origin.code }} <span style="color:var(--text-light)">→</span> {{ flight.destination.code
-                    }}
+                    {{ flight.origin.code }} <span style="color:var(--text-light)">→</span> {{ flight.destination.code }}
                 </div>
                 <div class="status-badge status-{{ flight.status|lower }}">
                     Status: {{ flight.status }}
