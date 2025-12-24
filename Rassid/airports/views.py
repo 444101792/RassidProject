@@ -162,7 +162,15 @@ def employees_list(request):
     if request.user.role != 'airport_admin':
         return redirect('public_home')
     employees = User.objects.filter(role='operator', airport_id=request.user.airport_id)
-    return render(request, "airports/employees_list.html", {"employees": employees})
+    
+    active_count = employees.filter(is_active=True).count()
+    inactive_count = employees.count() - active_count
+    
+    return render(request, "airports/employees_list.html", {
+        "employees": employees,
+        "active_count": active_count,
+        "inactive_count": inactive_count
+    })
 
 @login_required
 def add_employee(request):
@@ -274,11 +282,35 @@ def airport_settings(request):
     subscription = None
     if airport_id:
         airport = get_object_or_404(Airport, id=airport_id)
-        subscription = AirportSubscription.objects.filter(airport=airport).first()
+        subscription = AirportSubscription.objects.filter(airport=airport).order_by('-expire_at').first()
+
+    sub_percentage = 0
+    days_remaining = 0
+    total_days = 0
+    
+    if subscription and subscription.start_at and subscription.expire_at:
+        try:
+            total_duration = (subscription.expire_at - subscription.start_at).total_seconds()
+            elapsed = (timezone.now() - subscription.start_at).total_seconds()
+            
+            if total_duration > 0:
+                sub_percentage = int((elapsed / total_duration) * 100)
+                sub_percentage = min(100, max(0, sub_percentage))
+                
+                # Calculate days remaining
+                remaining_seconds = total_duration - elapsed
+                days_remaining = max(0, int(remaining_seconds / 86400))
+                total_days = int(total_duration / 86400)
+        except:
+            sub_percentage = 0
+            days_remaining = 0
     
     return render(request, "airports/airport_settings.html", {
         "airport": airport,
         "subscription": subscription,
+        "sub_percentage": sub_percentage,
+        "days_remaining": days_remaining,
+        "total_days": total_days
     })
 
 
@@ -422,89 +454,134 @@ def payment_success(request, request_id):
              messages.error(request, "Payment not confirmed.")
              return redirect('airport_payment_checkout', request_id=request_id)
 
-        if User.objects.filter(email=sub_req.admin_email).exists():
-            messages.error(request, "User with this email already exists.")
-            return redirect('public_home')
-
-        airport = Airport.objects.filter(code=sub_req.airport_code).first()
-        if not airport:
-            airport = Airport.objects.create(
-                name=sub_req.airport_name,
-                code=sub_req.airport_code,
-                city=sub_req.city,
-                country=sub_req.country
-            )
-
-        password = get_random_string(length=12)
-        user = User.objects.create_user(
-            email=sub_req.admin_email,
-            password=password,
-            role='airport_admin',
-            airport_id=airport.id
-        )
-
+        # Determine duration
         years = 1
         if sub_req.selected_plan == '3_years':
             years = 3
         elif sub_req.selected_plan == '5_years':
             years = 5
+        
+        duration_days = 365 * years
+
+        # CHECK IF USER EXISTS (Renewal vs New)
+        existing_user = User.objects.filter(email=sub_req.admin_email).first()
+
+        if existing_user:
+            # === RENEWAL FLOW ===
+            airport = Airport.objects.filter(id=existing_user.airport_id).first()
+            if not airport:
+                 # Fallback if corrupted data
+                 airport = Airport.objects.filter(code=sub_req.airport_code).first()
             
-        start_date = timezone.now()
-        end_date = start_date + timedelta(days=365*years)
+            subscription = AirportSubscription.objects.filter(airport=airport).order_by('-expire_at').first()
+            
+            start_date = timezone.now()
+            
+            # If active and not expired, add to existing end date
+            if subscription and subscription.status == 'active' and subscription.expire_at > timezone.now():
+                new_expire_at = subscription.expire_at + timedelta(days=duration_days)
+            else:
+                new_expire_at = timezone.now() + timedelta(days=duration_days)
+            
+            if subscription:
+                subscription.plan_type = sub_req.get_selected_plan_display()
+                subscription.expire_at = new_expire_at
+                subscription.status = 'active'
+                subscription.save()
+            else:
+                AirportSubscription.objects.create(
+                    airport=airport,
+                    plan_type=sub_req.get_selected_plan_display(),
+                    start_at=start_date,
+                    expire_at=new_expire_at,
+                    status='active'
+                )
+                
+            messages.success(request, f"Subscription successfully renewed until {new_expire_at.date()}.")
+            redirect_target = 'airport_dashboard'
 
-        AirportSubscription.objects.create(
-            airport=airport,
-            plan_type=sub_req.get_selected_plan_display(),
-            start_at=start_date,
-            expire_at=end_date,
-            status='active'
-        )
+        else:
+            # === NEW REGISTRATION FLOW ===
+            airport = Airport.objects.filter(code=sub_req.airport_code).first()
+            if not airport:
+                airport = Airport.objects.create(
+                    name=sub_req.airport_name,
+                    code=sub_req.airport_code,
+                    city=sub_req.city,
+                    country=sub_req.country
+                )
 
+            password = get_random_string(length=12)
+            user = User.objects.create_user(
+                email=sub_req.admin_email,
+                password=password,
+                role='airport_admin',
+                airport_id=airport.id
+            )
+
+            start_date = timezone.now()
+            end_date = start_date + timedelta(days=duration_days)
+
+            AirportSubscription.objects.create(
+                airport=airport,
+                plan_type=sub_req.get_selected_plan_display(),
+                start_at=start_date,
+                expire_at=end_date,
+                status='active'
+            )
+            
+            # Send Credentials Email only for new users
+            subject = "Welcome to RASSID - Workspace Activated"
+            login_url = request.build_absolute_uri('/login/')
+            
+            context = {
+                'airport_name': airport.name,
+                'email': sub_req.admin_email,
+                'password': password,
+                'login_url': login_url
+            }
+
+            html_message = render_to_string('emails/credentials_email.html', context)
+            plain_message = strip_tags(html_message)
+
+            send_mail(
+                subject,
+                plain_message,
+                settings.DEFAULT_FROM_EMAIL,
+                [sub_req.admin_email],
+                html_message=html_message,
+                fail_silently=False
+            )
+            
+            redirect_target = 'users:login' # Force login for new users
+
+        # Common Steps (Record Payment, Update Request)
         Payment.objects.create(
             airport=airport,
-            amount=499.00,
+            amount=499.00, # This might need to be dynamic based on plan in future
             plan_name=sub_req.get_selected_plan_display(),
             status='Paid'
         )
 
         sub_req.status = 'approved'
         sub_req.save()
-
-        subject = "Welcome to RASSID - Workspace Activated"
-        login_url = request.build_absolute_uri('/login/')
-        
-        context = {
-            'airport_name': airport.name,
-            'email': sub_req.admin_email,
-            'password': password,
-            'login_url': login_url
-        }
-
-        html_message = render_to_string('emails/credentials_email.html', context)
-        plain_message = strip_tags(html_message)
-
-        send_mail(
-            subject,
-            plain_message,
-            settings.DEFAULT_FROM_EMAIL,
-            [sub_req.admin_email],
-            html_message=html_message,
-            fail_silently=False
-        )
         
         try:
              from notifications.models import EmailLog
              EmailLog.objects.create(
                 recipient=sub_req.admin_email,
-                subject="Account Credentials",
+                subject="Account/Subscription Activated",
                 status="Sent"
             )
         except:
             pass
 
-        return render(request, 'users/login.html', {
-            'messages': [f'Success! Account for {airport.name} is now active. Please check your email for credentials.']
-        })
+        if redirect_target == 'users:login':
+             return render(request, 'users/login.html', {
+                'messages': [f'Success! Account for {airport.name} is now active. Please check your email for credentials.']
+            })
+        else:
+             return redirect(redirect_target)
 
     except Exception as e:
         transaction.set_rollback(True)

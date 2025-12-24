@@ -25,7 +25,7 @@
 
             <div class="nav-left">
                 {% if user.is_authenticated and user.role == 'airport_admin' %}
-                <a href="{% url 'airport_dashboard' %}" class="logo">
+                <a href="{% url 'public_home' %}" class="logo">
                     RASSID <span style="font-size: .5em; opacity:.7;">ADMIN</span>
                 </a>
                 {% else %}
@@ -53,13 +53,13 @@
 
                 {% if user.is_superuser %}
                 <a href="{% url 'admin_requests_list' %}" class="nav-link"
-                style="display:flex; align-items:center; gap:6px; justify-content:center; position:relative;">
+                    style="display:flex; align-items:center; gap:6px; justify-content:center; position:relative;">
 
-                <span style="position: relative; display: inline-flex; align-items: center;">
-                    <span class="material-symbols-outlined" style="font-size: 20px;">inbox</span>
+                    <span style="position: relative; display: inline-flex; align-items: center;">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">inbox</span>
 
-                    {% if pending_requests_count and pending_requests_count > 0 %}
-                    <span style="
+                        {% if pending_requests_count and pending_requests_count > 0 %}
+                        <span style="
                         position: absolute;
                         top: -10px;
                         right: -10px;
@@ -77,10 +77,10 @@
                         box-shadow: 0 2px 8px rgba(0,0,0,0.12);
                         z-index: 2;
                     ">{{ pending_requests_count }}</span>
-                    {% endif %}
-                </span>
+                        {% endif %}
+                    </span>
 
-                <span>Requests</span>
+                    <span>Requests</span>
                 </a>
 
                 <a href="{% url 'platform_dashboard' %}" class="nav-link"

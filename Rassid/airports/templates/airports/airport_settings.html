@@ -2,128 +2,350 @@
 {% load static %}
 
 {% block content %}
-<div class="container admin-page-container">
+<style>
+    /* Premium Hover Effects */
+    .glass-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-    <div class="mb-4">
-        <h2 class="fw-bold text-dark">Settings</h2>
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Hero Banner Style */
+    .hero-banner {
+        background: linear-gradient(135deg, #1e2124 0%, #16191d 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+    }
+
+    .hero-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at top right, rgba(45, 206, 137, 0.1) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .airport-watermark {
+        position: absolute;
+        right: -20px;
+        top: 50%;
+        transform: translateY(-50%) rotate(-10deg);
+        font-size: 8rem;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.03);
+        pointer-events: none;
+        user-select: none;
+    }
+
+    /* Input Styling */
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper .material-symbols-outlined {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 5;
+    }
+
+    .modern-input {
+        background-color: #23262b !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        padding: 12px 15px 12px 45px !important;
+        /* pad left for icon */
+        border-radius: 10px;
+        transition: 0.3s;
+    }
+
+    .modern-input:focus {
+        border-color: #2dce89 !important;
+        box-shadow: 0 0 0 4px rgba(45, 206, 137, 0.1);
+        background-color: #2a2e33 !important;
+    }
+
+    /* Progress Bar */
+    .sub-progress {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .sub-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #2dce89, #2dcecc);
+        transition: width 1.5s ease;
+    }
+
+    /* THEME OVERRIDES FOR PREMIUM DARK MODE */
+    body {
+        background-color: #121417 !important;
+        /* Force Dark Background */
+        color: #e0e0e0;
+    }
+
+    .page-subtitle {
+        color: #a0a0a0 !important;
+    }
+
+    .text-muted {
+        color: #8fa0b0 !important;
+        /* Lighter grey for better visibility on dark */
+    }
+
+    .admin-form-label {
+        color: #d0d0d0 !important;
+    }
+
+    /* Fix Input Icons Color */
+    .input-wrapper .material-symbols-outlined {
+        color: #a0a0a0;
+    }
+</style>
+
+
+<div class="dashboard-container">
+
+    <div class="header-section d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">Manage workspace and preferences.</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-light text-dark px-3 py-2 rounded-pill font-monospace">{{ airport.code }}</span>
+        </div>
     </div>
 
     {% if messages %}
     <div class="mb-4">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined">info</span>
+                {{ message }}
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div class="row">
-        <div class="col-lg-8">
+    <!-- UNIFIED HERO SECTION (Airport + Subscription) -->
+    <div class="hero-banner p-4 mb-5 shadow-lg">
+        <div class="airport-watermark">{{ airport.code }}</div>
+        <div class="row align-items-center position-relative g-5"> <!-- Increased gap to g-5 -->
+            <!-- Left: Airport Identity -->
+            <div class="col-md-7">
+                <div class="d-flex align-items-start gap-4">
+                    <div class="p-3 rounded-circle bg-success bg-opacity-10 text-success d-none d-sm-block mt-1">
+                        <span class="material-symbols-outlined fs-2">apartment</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-column gap-1">
+                            <span class="text-uppercase text-secondary fw-bold small tracking-wider mb-2">Airport
+                                Workspace</span>
 
-            <div class="admin-card mb-4">
-                <div class="section-title">Profile Settings</div>
-                <form method="POST">
-                    {% csrf_token %}
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label class="admin-form-label">First Name</label>
-                            <input type="text" name="first_name" value="{{ request.user.first_name|default:'' }}"
-                                class="admin-input" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="admin-form-label">Last Name</label>
-                            <input type="text" name="last_name" value="{{ request.user.last_name|default:'' }}"
-                                class="admin-input" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="admin-form-label">Phone Number</label>
-                            <input type="text" name="phone_number" value="{{ request.user.phone_number|default:'' }}"
-                                class="admin-input">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button type="submit" class="btn-save-hero">
-                                Save Changes
-                            </button>
+                            <h1 class="text-white fw-bold display-5 mb-3">{{ airport.name }}</h1>
+
+                            <div class="d-flex flex-wrap align-items-center gap-4 text-secondary">
+                                <div class="d-flex align-items-center gap-2" title="Location">
+                                    <span class="material-symbols-outlined text-muted fs-5">location_on</span>
+                                    <span class="fw-medium text-white">{{ airport.city }}, {{ airport.country }}</span>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-2" title="Verification Status">
+                                    <span class="material-symbols-outlined text-success fs-5">verified</span>
+                                    <span class="text-success fw-bold small text-uppercase">Verified Account</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </form>
-            </div>
-
-            <div class="admin-card mb-4">
-                <div class="section-title" style="color: #00f260;">Airport Information</div>
-                <div class="row mb-3">
-                    <div class="col-md-4 text-muted">Airport Name</div>
-                    <div class="col-md-8 fw-bold text-white">{{ airport.name }}</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-4 text-muted">IATA Code</div>
-                    <div class="col-md-8">
-                        <span class="badge bg-light text-dark">{{ airport.code }}</span>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4 text-muted">Location</div>
-                    <div class="col-md-8 text-white">{{ airport.city }}, {{ airport.country }}</div>
                 </div>
             </div>
 
-        </div>
+            <!-- Right: Subscription Status -->
+            <div class="col-md-5">
+                <div
+                    class="p-4 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25 shadow-sm h-100">
 
-        <div class="col-lg-4">
+                    <!-- Plan Header -->
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
+                        <div>
+                            <span class="d-block text-secondary x-small fw-bold text-uppercase mb-1">Current Plan</span>
+                            <h3 class="text-white fw-bold mb-0 text-nowrap">{{ subscription.plan_type|default:"Free
+                                Tier" }}</h3>
+                        </div>
+                        {% if subscription.status == 'active' %}
+                        <div class="text-end">
+                            <span
+                                class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
+                                Active
+                            </span>
+                        </div>
+                        {% else %}
+                        <span
+                            class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">
+                            Inactive
+                        </span>
+                        {% endif %}
+                    </div>
 
-            <div class="admin-card mb-4">
-                <div class="section-title" style="color: #0575e6;">Subscription Plan</div>
+                    {% if subscription.status == 'active' %}
+                    <!-- Usage Stats -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-end mb-2">
+                            <span class="text-secondary small fw-medium">License Usage</span>
+                            <span class="text-white fw-bold h5 mb-0">{{ sub_percentage }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px; background-color: rgba(255,255,255,0.05);">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                style="width: {{ sub_percentage }}%"></div>
+                        </div>
+                    </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted">Current Plan</span>
-                    <span class="fw-bold text-white">{{ subscription.plan_type|default:"No Active Subscription"
-                        }}</span>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted">Status</span>
-                    {% if subscription and subscription.status == 'active' %}
-                    <span class="badge bg-success">Active</span>
-                    {% else %}
-                    <span class="badge bg-danger">Inactive</span>
+                    <!-- Footer -->
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2 text-muted small">
+                            <span class="material-symbols-outlined fs-6">event_available</span>
+                            <span>Expires: <span class="text-white fw-medium">{{ subscription.expire_at|date:"M d, Y"
+                                    }}</span></span>
+                        </div>
+                        <a href="{% url 'airport_renew_subscription' %}"
+                            class="btn btn-sm btn-outline-light rounded-pill px-4"
+                            style="border-color: rgba(255,255,255,0.2);">
+                            Manage Plan
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <span class="text-muted">Expires At</span>
-                    <span class="text-white">{{ subscription.expire_at|date:"Y-m-d" }}</span>
-                </div>
-
-                <a href="{% url 'airport_renew_subscription' %}" class="btn btn-primary w-100">Manage Subscription</a>
             </div>
-
-            <div class="admin-card mb-4">
-                <div class="section-title">Security</div>
-                <p class="text-muted small mb-3">Update your password to keep your account secure.</p>
-                <div class="d-grid">
-                    <button type="button" class="btn btn-outline-light"
-                        onclick="alert('Password change functionality coming soon!')">
-                        Change Password
-                    </button>
-                </div>
-            </div>
-
-            <div class="admin-card">
-                <div class="section-title">Support</div>
-                <div class="d-flex align-items-center mb-3">
-                    <span class="material-symbols-outlined text-muted me-2">email</span>
-                    <a href="mailto:support@rassid.com" class="text-decoration-none text-white">support@rassid.com</a>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="material-symbols-outlined text-muted me-2">call</span>
-                    <span class="text-white">+966 800 123 4567</span>
-                </div>
-            </div>
-
         </div>
     </div>
 
+
+    <!-- CONTENT GRID (Balanced 2-Column) -->
+    <div class="row g-4">
+
+        <!-- LEFT COL: User Profile -->
+        <div class="col-lg-6">
+            <div class="glass-card h-100">
+                <div class="card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">manage_accounts</span>
+                        <h3>My Profile</h3>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="admin-form-label">First Name</label>
+                                <div class="input-wrapper">
+                                    <span class="material-symbols-outlined">person</span>
+                                    <input type="text" name="first_name"
+                                        value="{{ request.user.first_name|default:'' }}" class="modern-input w-100"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="admin-form-label">Last Name</label>
+                                <div class="input-wrapper">
+                                    <span class="material-symbols-outlined">person</span>
+                                    <input type="text" name="last_name" value="{{ request.user.last_name|default:'' }}"
+                                        class="modern-input w-100" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="admin-form-label">Phone Number</label>
+                                <div class="input-wrapper">
+                                    <span class="material-symbols-outlined">call</span>
+                                    <input type="text" name="phone_number"
+                                        value="{{ request.user.phone_number|default:'' }}" class="modern-input w-100">
+                                </div>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit"
+                                    class="btn-save-hero d-flex align-items-center justify-content-center gap-2">
+                                    <span class="material-symbols-outlined">save</span>
+                                    Save Profile
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COL: Security & Support -->
+        <div class="col-lg-6">
+            <div class="d-flex flex-column gap-4 h-100">
+
+                <!-- Security Card -->
+                <div class="glass-card flex-grow-1">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-warning">shield</span>
+                            <h3>Security & Privacy</h3>
+                        </div>
+                    </div>
+                    <div class="p-4 d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-bold text-white mb-1">Passkey & Access</div>
+                            <div class="small text-muted">Update your password regularly to stay safe.</div>
+                        </div>
+                        <button class="btn btn-outline-warning rounded-pill px-3 d-flex align-items-center gap-2"
+                            onclick="alert('Coming Soon')">
+                            Change Password
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Support Card -->
+                <div class="glass-card flex-grow-1">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-info">headset_mic</span>
+                            <h3>Help Center</h3>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="mailto:support@rassid.com"
+                                    class="btn btn-outline-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 border-secondary border-opacity-25">
+                                    <span class="material-symbols-outlined mb-2">mail</span>
+                                    <span class="small">Email Support</span>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="#"
+                                    class="btn btn-outline-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 border-secondary border-opacity-25">
+                                    <span class="material-symbols-outlined mb-2">call</span>
+                                    <span class="small">Call Center</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
 </div>
 {% endblock %}
