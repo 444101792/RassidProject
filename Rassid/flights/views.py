@@ -139,8 +139,8 @@ def edit_flight(request, pk):
                 flight=flight,
                 gateCode=gate_code,
                 terminal=terminal,
-                boardingOpenTime=boarding_open if boarding_open else timezone.now(), 
-                boardingCloseTime=boarding_close if boarding_close else timezone.now()
+                boardingOpenTime=boarding_open if boarding_open else None, 
+                boardingCloseTime=boarding_close if boarding_close else None
             )
 
         messages.success(request, "Flight details updated successfully.")
