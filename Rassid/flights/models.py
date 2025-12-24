@@ -22,8 +22,8 @@ class GateAssignment(models.Model):
     gateCode = models.CharField(max_length=10)
     terminal = models.CharField(max_length=10)
 
-    boardingOpenTime = models.DateTimeField()
-    boardingCloseTime = models.DateTimeField()
+    boardingOpenTime = models.DateTimeField(null=True, blank=True)
+    boardingCloseTime = models.DateTimeField(null=True, blank=True)
 
     assignedAt = models.DateTimeField(auto_now_add=True)
     releasedAt = models.DateTimeField(null=True, blank=True)

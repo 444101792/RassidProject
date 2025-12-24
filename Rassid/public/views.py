@@ -36,6 +36,8 @@ def flights_list(request):
     # 3. Exclude 'landed' and 'cancelled' from the generic catch-all, but if 'active' is somehow flagged landed (unlikely), strict active takes precedence or we can exclude landed globally.
     # actually, simplest is: (Active) OR (Future/Recent AND NOT Landed AND NOT Cancelled)
     
+    from django.db.models import Prefetch, Q
+    
     flights = Flight.objects.filter(
         origin_id__in=managed_airport_ids
     ).filter(
@@ -45,7 +47,9 @@ def flights_list(request):
             ~Q(status__iexact='landed') & 
             ~Q(status__iexact='cancelled')
         )
-    ).select_related('origin', 'destination').prefetch_related('gateassignment_set').order_by("scheduledDeparture")
+    ).select_related('origin', 'destination').prefetch_related(
+        Prefetch('gateassignment_set', queryset=GateAssignment.objects.order_by('-assignedAt'), to_attr='latest_gates')
+    ).order_by("scheduledDeparture")
 
     # Search filter
     search_query = request.GET.get('search')

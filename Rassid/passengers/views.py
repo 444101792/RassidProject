@@ -41,22 +41,15 @@ class PassengerFlightViewSet(ModelViewSet):
 def tracking(request):
     return render(request, "passengers/tracking.html")
 
-def passenger_tracker(request, token):
+def flight_tracker(request, booking_token):
     """
-    Public tracking page for passengers. 
-    Accessible via secure token.
+    Specific Flight Tracking page.
+    Accessible via secure Booking UUID (PassengerFlight.access_token).
     """
-    passenger = get_object_or_404(Passenger, trackingToken=token)
+    # Strict Access: Fetch proper reservation or 404
+    p_flight = get_object_or_404(PassengerFlight, access_token=booking_token)
     
-    p_flight = PassengerFlight.objects.filter(passenger=passenger).select_related('flight', 'flight__origin', 'flight__destination').order_by('-flight__scheduledDeparture').first()
-    
-    if not p_flight:
-        return render(request, "passengers/tracker.html", {
-            "passenger": passenger,
-            "flight": None,
-            "error": "No upcoming flights found."
-        })
-
+    passenger = p_flight.passenger
     flight = p_flight.flight
     
     timeline = []

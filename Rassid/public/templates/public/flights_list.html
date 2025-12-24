@@ -37,12 +37,15 @@
                 </div>
             </div>
             <div class="fc-gate">
-                <span class="label">Gate</span>
-                {% with gate=flight.gateassignment_set.first %}
-                <span class="value">
-                    {% if gate %}{{ gate.gateCode }}{% else %}-{% endif %}
-                </span>
-                {% endwith %}
+                <td>
+                    {% with gate=flight.latest_gates.0 %}
+                    {% if gate %}
+                    <strong>{{ gate.gateCode }}</strong> <small class="text-muted">(T{{ gate.terminal }})</small>
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                    {% endwith %}
+                </td>
             </div>
             <div class="fc-status status-{{ flight.status|lower }}">
                 {{ flight.status }}

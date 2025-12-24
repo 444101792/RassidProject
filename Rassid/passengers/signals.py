@@ -14,10 +14,10 @@ def send_update_email_to_passengers(flight, title_en, desc_en, title_ar, desc_ar
         passenger = booking.passenger
         lang = passenger.preferredLanguage
         
-        token = passenger.trackingToken
+        token = booking.access_token
         # Hardcoding domain for now as we don't have request object in signal
         # Ideally use sites framework or settings.SITE_URL
-        tracking_url = f"http://127.0.0.1:8000/passengers/track/{token}/"
+        tracking_url = f"http://127.0.0.1:8000/passengers/track/booking/{token}/"
         
         if lang == 'ar':
             subject = f"تحديث الرحلة {flight.flightNumber}"
@@ -63,13 +63,33 @@ def flight_status_changed(sender, instance, created, **kwargs):
         flight = instance.flight
         # Example Statuses: scheduled, boarding, departed, delayed, cancelled
         
-        send_update_email_to_passengers(
-            flight,
-            title_en=f"Status Changed to {instance.newStatus}",
-            desc_en=f"The flight status has been updated to {instance.newStatus}.",
-            title_ar=f"تغيرت الحالة إلى {instance.newStatus}",
-            desc_ar=f"تم تحديث حالة الرحلة إلى {instance.newStatus}."
-        )
+        new_status = instance.newStatus.lower()
+        
+        if new_status == 'boarding':
+            send_update_email_to_passengers(
+                flight,
+                title_en="Boarding Now Open",
+                desc_en=f"Boarding for flight {flight.flightNumber} is now open. Please proceed to your gate.",
+                title_ar="بدء صعود الطائرة",
+                desc_ar=f"بدأ صعود الطائرة للرحلة {flight.flightNumber}. يرجى التوجه إلى البوابة."
+            )
+        elif new_status == 'cancelled':
+             send_update_email_to_passengers(
+                flight,
+                title_en="Flight Cancelled",
+                desc_en=f"We regret to inform you that flight {flight.flightNumber} has been cancelled. Please contact support.",
+                title_ar="تم إلغاء الرحلة",
+                desc_ar=f"نأسف لإبلاغكم بإلغاء الرحلة {flight.flightNumber}. يرجى التواصل مع الدعم."
+            )
+        else:
+            # Generic Update
+            send_update_email_to_passengers(
+                flight,
+                title_en=f"Status Changed to {instance.newStatus}",
+                desc_en=f"The flight status has been updated to {instance.newStatus}.",
+                title_ar=f"تغيرت الحالة إلى {instance.newStatus}",
+                desc_ar=f"تم تحديث حالة الرحلة إلى {instance.newStatus}."
+            )
 
 @receiver(post_save, sender=GateAssignment)
 def gate_assigned(sender, instance, created, **kwargs):
@@ -80,8 +100,6 @@ def gate_assigned(sender, instance, created, **kwargs):
     if hasattr(boarding_time, 'strftime'):
         boarding_time_str = boarding_time.strftime('%H:%M')
     else:
-        # It's a string, likely ISO format 'YYYY-MM-DDTHH:MM' or similar
-        # We can just take the time part or print as is
         boarding_time_str = str(boarding_time).split('T')[-1][:5]
 
     send_update_email_to_passengers(
@@ -99,8 +117,8 @@ def booking_created(sender, instance, created, **kwargs):
         flight = instance.flight
         lang = passenger.preferredLanguage
         
-        token = passenger.trackingToken
-        tracking_link = f"http://127.0.0.1:8000/passengers/track/{token}/"
+        token = instance.access_token
+        tracking_link = f"http://127.0.0.1:8000/passengers/track/booking/{token}/"
         
         try:
             boarding_time = flight.scheduledDeparture.strftime('%H:%M')
