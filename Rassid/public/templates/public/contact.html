@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container section-padding">
+    <div class="glass-card" style="max-width: 800px; margin: 40px auto; padding: 40px;">
+        <div class="text-center mb-5">
+            <h1 class="text-gradient">Contact Us</h1>
+            <p class="text-muted">We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+        </div>
+
+        <form action="{% url 'public_contact' %}" method="POST">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" style="font-weight: 500;">First Name</label>
+                    <input type="text" name="first_name" class="form-control input-field" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" style="font-weight: 500;">Last Name</label>
+                    <input type="text" name="last_name" class="form-control input-field" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" style="font-weight: 500;">Email Address</label>
+                <input type="email" name="email" class="form-control input-field"  required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" style="font-weight: 500;">Subject</label>
+                <select name="subject" class="form-select input-field">
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Technical Support">Technical Support</option>
+                    <option value="Sales & Partnerships">Sales & Partnerships</option>
+                    <option value="Report an Issue">Report an Issue</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label" style="font-weight: 500;">Message</label>
+                <textarea name="message" class="form-control input-field" rows="5" placeholder="How can we help you?" required></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary w-100" style="padding: 12px; font-weight: 600;">Send Message</button>
+        </form>
+
+        <div class="mt-5 pt-4 border-top text-center">
+            <h5 class="mb-3">Other ways to reach us</h5>
+            <div class="d-flex justify-content-center gap-4 text-muted small">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined">email</span>
+                    <a href="mailto:zsyzy8335@gmail.com">zsyzy8335@gmail.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

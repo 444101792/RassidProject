@@ -20,4 +20,6 @@ urlpatterns = [
     path('tickets/<str:ticket_id>/close/', views.admin_close_ticket, name='admin_close_ticket'),
     path("subscriptions/", views.subscriptions, name="platform_admin_subscriptions"),
     path("system-errors/", views.system_errors, name="platform_admin_system_errors"),
+    path("messages/", views.contact_messages_list, name="admin_contact_messages"),
+    path("messages/<int:message_id>/", views.message_details, name="admin_message_details"),
 ]

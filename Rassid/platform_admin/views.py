@@ -469,3 +469,37 @@ def admin_close_ticket(request, ticket_id):
         messages.error(request, "Ticket not found.")
 
     return redirect_back(request)
+
+@login_required
+def contact_messages_list(request):
+    if not is_super_admin(request.user):
+        return redirect('public_home')
+        
+    from public.models import ContactSubmission
+    
+    messages_list = ContactSubmission.objects.all().order_by('-created_at')
+    
+    return render(request, 'platform_admin/contact_messages.html', {
+        'messages_list': messages_list
+    })
+
+@login_required
+def message_details(request, message_id):
+    if not is_super_admin(request.user):
+        return redirect('public_home')
+    
+    from public.models import ContactSubmission
+    submission = get_object_or_404(ContactSubmission, id=message_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'toggle_resolve':
+            submission.is_resolved = not submission.is_resolved
+            submission.save()
+            status = "Resolved" if submission.is_resolved else "Pending"
+            messages.success(request, f"Message marked as {status}.")
+            return redirect('admin_message_details', message_id=submission.id)
+            
+    return render(request, 'platform_admin/message_details.html', {
+        'submission': submission
+    })

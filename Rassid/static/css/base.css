@@ -68,11 +68,13 @@ a {
 }
 
 .logo {
+    
     font-size: 1.8rem;
     font-weight: 700;
     color: var(--white);
     letter-spacing: -0.5px;
     transition: color 0.3s;
+    text-decoration: none;
 }
 
 .nav-link {
@@ -178,7 +180,7 @@ a {
 }
 
 .nav-login-btn {
-    
+
     padding: 0.6rem 1.8rem;
     border: none;
     background-color: #ffffff;
@@ -286,7 +288,7 @@ footer {
     margin-top: auto;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
 
     .nav-center,
     .nav-right {
@@ -445,4 +447,17 @@ footer {
         width: 96vw;
         height: 84vh;
     }
+}
+
+.input-field {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.input-field:focus {
+    background: #fff !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
 }

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from airports.models import Airport
-from flights.models import Flight
+from flights.models import Flight, GateAssignment
 
 def home(request):
     return render(request, "public/home.html", {
@@ -13,7 +13,6 @@ def about(request):
 def airports_list(request):
     from airports.models import AirportSubscription
     from django.utils import timezone
-    # Only airports with an active subscription (partner)
     active_subs = AirportSubscription.objects.filter(status='active', expire_at__gt=timezone.now())
     airports = Airport.objects.filter(id__in=active_subs.values_list('airport_id', flat=True))
     return render(request, "public/airports_list.html", {"airports": airports})
@@ -22,7 +21,6 @@ def flights_list(request):
     from users.models import User
     from django.db.models import Q
 
-    # Get IDs of airports that have an admin (managed airports)
     managed_airport_ids = User.objects.filter(role='airport_admin').values_list('airport_id', flat=True).distinct()
     
     from django.utils import timezone
@@ -30,11 +28,6 @@ def flights_list(request):
     
     cutoff_time = timezone.now() - timezone.timedelta(hours=1)
     
-    # Logic:
-    # 1. Always show 'active' flights (flying now).
-    # 2. Show 'scheduled'/'delayed'/etc if they are in the future or departed recently (<1h ago).
-    # 3. Exclude 'landed' and 'cancelled' from the generic catch-all, but if 'active' is somehow flagged landed (unlikely), strict active takes precedence or we can exclude landed globally.
-    # actually, simplest is: (Active) OR (Future/Recent AND NOT Landed AND NOT Cancelled)
     
     from django.db.models import Prefetch, Q
     
@@ -51,7 +44,6 @@ def flights_list(request):
         Prefetch('gateassignment_set', queryset=GateAssignment.objects.order_by('-assignedAt'), to_attr='latest_gates')
     ).order_by("scheduledDeparture")
 
-    # Search filter
     search_query = request.GET.get('search')
     if search_query:
         flights = flights.filter(
@@ -67,3 +59,55 @@ def flights_list(request):
 
 def pricing_view(request):
     return render(request, 'public/pricing.html')
+
+def contact(request):
+    if request.method == "POST":
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.contrib import messages
+        from .models import ContactSubmission
+        
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        subject_type = request.POST.get('subject')
+        message = request.POST.get('message')
+        
+        ContactSubmission.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            subject=subject_type,
+            message=message
+        )
+        
+        full_subject = f"[contact-us] {subject_type} from {first_name} {last_name}"
+        email_body = f"""
+        You have received a new contact form submission.
+
+        Name: {first_name} {last_name}
+        Email: {email}
+        Subject: {subject_type}
+
+        Message:
+        {message}
+        """
+        
+        try:
+            # Send to the admin/support email
+            recipient = settings.EMAIL_HOST_USER if settings.EMAIL_HOST_USER else 'zsyz8335@gmail.com'
+            
+            send_mail(
+                full_subject,
+                email_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [recipient],
+                fail_silently=False,
+            )
+            messages.success(request, "Your message has been sent successfully! We will contact you shortly.")
+        except Exception as e:
+            print(e)
+            # Even if email fails, we saved to DB, so we can tell user "received" or just warn
+            messages.success(request, "Your message has been recorded. We will contact you shortly.")
+            
+    return render(request, "public/contact.html")

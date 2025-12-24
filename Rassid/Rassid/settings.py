@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'tickets',
     'users',
     'rest_framework',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [

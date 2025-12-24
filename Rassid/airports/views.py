@@ -410,15 +410,22 @@ def payment_checkout(request, request_id):
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
     
+    price_map = {
+        '1_year': 10000000,
+        '3_years': 25000000,
+        '5_years': 45000000
+    }
+    unit_amount = price_map.get(sub_req.selected_plan, 10000000)
+
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
                     'currency': 'usd',
-                    'unit_amount': 49900, # $499.00
+                    'unit_amount': unit_amount, 
                     'product_data': {
-                        'name': f'Activation Fee - {sub_req.airport_name}',
+                        'name': f'Platform License - {sub_req.airport_name}',
                         'description': f"Plan: {sub_req.get_selected_plan_display()}",
                     },
                 },
@@ -463,7 +470,6 @@ def payment_success(request, request_id):
              messages.error(request, "Payment not confirmed.")
              return redirect('airport_payment_checkout', request_id=request_id)
 
-        # Determine duration
         years = 1
         if sub_req.selected_plan == '3_years':
             years = 3
@@ -472,21 +478,17 @@ def payment_success(request, request_id):
         
         duration_days = 365 * years
 
-        # CHECK IF USER EXISTS (Renewal vs New)
         existing_user = User.objects.filter(email=sub_req.admin_email).first()
 
         if existing_user:
-            # === RENEWAL FLOW ===
             airport = Airport.objects.filter(id=existing_user.airport_id).first()
             if not airport:
-                 # Fallback if corrupted data
                  airport = Airport.objects.filter(code=sub_req.airport_code).first()
             
             subscription = AirportSubscription.objects.filter(airport=airport).order_by('-expire_at').first()
             
             start_date = timezone.now()
             
-            # If active and not expired, add to existing end date
             if subscription and subscription.status == 'active' and subscription.expire_at > timezone.now():
                 new_expire_at = subscription.expire_at + timedelta(days=duration_days)
             else:
@@ -510,7 +512,6 @@ def payment_success(request, request_id):
             redirect_target = 'airport_dashboard'
 
         else:
-            # === NEW REGISTRATION FLOW ===
             airport = Airport.objects.filter(code=sub_req.airport_code).first()
             if not airport:
                 airport = Airport.objects.create(
@@ -539,7 +540,6 @@ def payment_success(request, request_id):
                 status='active'
             )
             
-            # Send Credentials Email only for new users
             subject = "Welcome to RASSID - Workspace Activated"
             login_url = request.build_absolute_uri('/login/')
             
@@ -562,12 +562,18 @@ def payment_success(request, request_id):
                 fail_silently=False
             )
             
-            redirect_target = 'users:login' # Force login for new users
+            redirect_target = 'users:login'
 
-        # Common Steps (Record Payment, Update Request)
+        price_map = {
+            '1_year': 100000.00,
+            '3_years': 250000.00,
+            '5_years': 450000.00
+        }
+        amount = price_map.get(sub_req.selected_plan, 100000.00)
+
         Payment.objects.create(
             airport=airport,
-            amount=499.00, # This might need to be dynamic based on plan in future
+            amount=amount, 
             plan_name=sub_req.get_selected_plan_display(),
             status='Paid'
         )
@@ -754,7 +760,7 @@ def cancel_subscription_request(request, request_id):
     sub_request = get_object_or_404(SubscriptionRequest, id=request_id, admin_email=request.user.email)
     
     if sub_request.status in ['pending', 'approved_pending_payment']:
-        sub_request.status = 'rejected' # Mark as rejected/cancelled
+        sub_request.status = 'rejected'
         sub_request.save()
         messages.success(request, "Request cancelled successfully.")
     else:

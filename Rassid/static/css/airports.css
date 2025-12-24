@@ -1,4 +1,3 @@
-/* Custom file input styles for registration form */
 .form-control-file {
     display: block;
     width: 100%;
@@ -35,9 +34,7 @@ input[type="file"].form-control-file::-webkit-file-upload-button:hover,
 input[type="file"].form-control-file::file-selector-button:hover {
     background: #1d4ed8;
 }
-/* Airports App Styles */
 
-/* Payment Checkout */
 .checkout-page-wrapper {
     min-height: 80vh;
     display: flex;
