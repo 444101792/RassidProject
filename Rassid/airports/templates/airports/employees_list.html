@@ -114,14 +114,17 @@
 </style>
 
 
+<div class="page-header">
+    <div class="container">
+        <h1>Team Management</h1>
+        <p>Manage operator access and system permissions</p>
+    </div>
+</div>
+
 <div class="dashboard-container">
 
-    <!-- HEADER -->
-    <div class="header-section d-flex align-items-center justify-content-between mb-5">
-        <div>
-            <h1 class="page-title display-6 fw-bold">Team Management</h1>
-            <p class="page-subtitle">Manage operator access and system permissions.</p>
-        </div>
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-end mb-4">
         <a href="{% url 'airport_admin_add_employee' %}"
             class="btn btn-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2">
             <span class="material-symbols-outlined">add</span>
@@ -216,7 +219,8 @@
                         <td class="ps-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-circle me-3">
-                                    {{ emp.first_name|default_if_none:""|first|upper }}{{ emp.last_name|default_if_none:""|first|upper }}
+                                    {{ emp.first_name|default_if_none:""|first|upper }}{{
+                                    emp.last_name|default_if_none:""|first|upper }}
                                 </div>
                                 <div class="emp-info">
                                     <div class="emp-name">{{ emp.first_name }} {{ emp.last_name }}</div>

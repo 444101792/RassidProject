@@ -87,3 +87,19 @@ def admin_ticket_detail(request, pk):
         'comments': comments,
         'comment_form': comment_form
     })
+
+@login_required
+def escalate_ticket(request, pk):
+    """Refers an operator ticket to the platform admin"""
+    if request.user.role != 'airport_admin':
+        messages.error(request, "Permission denied.")
+        return redirect('public_home')
+        
+    ticket = get_object_or_404(Ticket, pk=pk, airport_id=request.user.airport_id)
+    
+    if ticket.status != 'Closed':
+        ticket.status = 'Escalated'
+        ticket.save()
+        messages.success(request, f"Ticket #{ticket.id} escalated to Platform Admin.")
+    
+    return redirect('airport_dashboard')

@@ -117,16 +117,17 @@
 </style>
 
 
+<div class="page-header">
+    <div class="container">
+        <h1>Settings</h1>
+        <p>Manage workspace and preferences</p>
+    </div>
+</div>
+
 <div class="dashboard-container">
 
-    <div class="header-section d-flex align-items-center justify-content-between">
-        <div>
-            <h1 class="page-title">Settings</h1>
-            <p class="page-subtitle">Manage workspace and preferences.</p>
-        </div>
-        <div class="text-end">
-            <span class="badge bg-light text-dark px-3 py-2 rounded-pill font-monospace">{{ airport.code }}</span>
-        </div>
+    <div class="d-flex justify-content-end mb-4">
+        <span class="badge bg-light text-dark px-3 py-2 rounded-pill font-monospace">{{ airport.code }}</span>
     </div>
 
     {% if messages %}

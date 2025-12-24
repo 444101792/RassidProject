@@ -9,4 +9,5 @@ urlpatterns = [
     # Admin URLs
     path('manage/', views.admin_tickets_list, name='admin_tickets_list'),
     path('manage/<int:pk>/', views.admin_ticket_detail, name='admin_ticket_detail'),
+    path('manage/<int:pk>/escalate/', views.escalate_ticket, name='admin_ticket_escalate'),
 ]

@@ -99,7 +99,14 @@ def dashboard(request):
         scheduledDeparture__date=today
     ).count()
 
-    tickets = Ticket.objects.filter(airport=my_airport).select_related('createdBy').order_by('-createdAt')
+    # Incoming (from operators) - Exclude tickets created by me (airport admin)
+    incoming_tickets = Ticket.objects.filter(airport=my_airport).exclude(createdBy=request.user).order_by('-createdAt')[:5]
+    
+    # Outgoing (my requests) - Created by me
+    my_tickets = Ticket.objects.filter(createdBy=request.user).order_by('-createdAt')[:5]
+
+    # Calculate total tickets for context
+    tickets = Ticket.objects.filter(airport=my_airport)
     total_tickets = tickets.count()
 
     upcoming_flights = Flight.objects.filter(
@@ -142,6 +149,8 @@ def dashboard(request):
         'airport': my_airport,
         'total_flights': total_flights,
         'today_flights': today_flights,
+        'incoming_tickets': incoming_tickets,
+        'my_tickets': my_tickets,
         'total_tickets': total_tickets,
         'upcoming_flights': upcoming_flights,
         'employees': employees,

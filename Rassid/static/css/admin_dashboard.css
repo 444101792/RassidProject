@@ -412,3 +412,28 @@ nav,
     border-color: rgba(255, 255, 255, 0.2);
     background: #23262b;
 }
+
+/* Header Banner Style */
+.page-header {
+    background-color: #111317;
+    padding: 80px 0;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 40px;
+    width: 100%;
+}
+
+.page-header h1 {
+    color: white;
+    font-weight: 800;
+    font-size: 3rem;
+    margin-bottom: 15px;
+    letter-spacing: -1px;
+}
+
+.page-header p {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
